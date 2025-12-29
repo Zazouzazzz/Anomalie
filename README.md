@@ -1,0 +1,2 @@
+# Anomalie
+Registriamo le anomalie
