@@ -829,20 +829,16 @@ Jagen wir Matrix und Multiversen.`,
     renderLog();
   }
 
-  async function sendToServer(entry){
-    if (!consent.share) return;
+  const payload = {
+  session_id: userKey,
+  user_key: userKey,
+  text: entry.text,
+  lang: entry.lang,
+  location: entry.location,
+  event_time: entry.iso,
+  client_time: `${entry.date} ${entry.time}`
+};
 
-    const url = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}`;
-    const payload = {
-      user_key: userKey,
-      text: entry.text,
-      lang: entry.lang,
-      location: entry.location,
-      event_time: entry.iso,
-      client_time: `${entry.date} ${entry.time}`
-    };
-
-    const res = await fetch(url, {
       method:"POST",
       headers:{
         apikey: SUPABASE_ANON_KEY,
