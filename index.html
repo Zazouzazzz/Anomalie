@@ -94,8 +94,8 @@
   <div class="panel">
     <section class="box">
       <div class="row">
-        <h1>l'ANOMALIE</h1>
-        <select class="btn" id="langSelect">
+        <h1 id="title">l'ANOMALIE</h1>
+        <select class="btn" id="langSelect" aria-label="Language">
           <option value="fr">FR</option><option value="en">EN</option><option value="it">IT</option>
           <option value="es">ES</option><option value="pt">PT</option><option value="de">DE</option>
           <option value="ru">RU</option><option value="ar">AR</option><option value="hi">HI</option>
@@ -103,30 +103,28 @@
         </select>
       </div>
 
-      <div id="definition">ANOMALIE [n.f.] : Discrepance, erreur de l'esperance, rupture de la norme. Indice d'une boucle temporelle ou d'un defaut systeme.
-Recense les repetitions suspectes.
-Traquons la Matrice et les MultiVers.</div>
+      <div id="definition"></div>
 
       <div class="muted" style="margin-top:10px" id="privacyMini"></div>
 
       <div class="box" style="margin-top:12px">
         <div class="row">
-          <div class="muted" style="font-weight:800">Votre clé (pour continuer ailleurs)</div>
+          <div class="muted" style="font-weight:800" id="keyTitle">Votre clé (pour continuer ailleurs)</div>
           <button class="btn" id="copyKeyBtn">COPIER</button>
         </div>
-        <div class="muted" style="margin-top:6px">Clé: <code id="userKeyView">-</code></div>
+        <div class="muted" style="margin-top:6px" id="keyLine">Clé: <code id="userKeyView">-</code></div>
 
         <div class="controls" style="margin-top:10px">
           <button class="btn" id="newKeyBtn">NOUVELLE CLÉ</button>
           <input id="restoreKeyInput" maxlength="80" placeholder="Coller une clé ANOM-...." />
           <button class="btn primary" id="restoreBtn">RESTAURER</button>
         </div>
-        <div class="pill" style="margin-top:6px">Le RESTORE récupère uniquement ce qui a été partagé.</div>
+        <div class="pill" style="margin-top:6px" id="restoreNote">Le RESTORE récupère uniquement ce qui a été partagé.</div>
       </div>
     </section>
 
     <section class="box" style="margin-top:14px">
-      <label for="anomalyInput">Mot / Keyword</label>
+      <label for="anomalyInput" id="labelAnomaly">Mot / Keyword</label>
       <input id="anomalyInput" maxlength="50" />
 
       <div class="toast" id="toast">
@@ -145,22 +143,22 @@ Traquons la Matrice et les MultiVers.</div>
 </div>
 
 <div class="banner" id="consentBanner" style="display:none;">
-  <div style="font-weight:800; color:#bfffd0; margin-bottom:6px;">Protection des données</div>
-  <div class="pill">Par défaut, tout reste en local. Si tu coches “Partager”, on envoie aussi au cloud (anonyme) pour analyse de motifs.</div>
+  <div style="font-weight:800; color:#bfffd0; margin-bottom:6px;" id="bannerTitle">Protection des données</div>
+  <div class="pill" id="bannerDesc">Par défaut, tout reste en local. Si tu coches “Partager”, on envoie aussi au cloud (anonyme) pour analyse de motifs.</div>
 
   <div class="toggle">
     <input type="checkbox" id="shareToggle" />
     <div>
-      <div><strong>Partager mes entrées</strong></div>
-      <div class="pill">Nécessaire pour RESTORE multi-ordinateur.</div>
+      <div><strong id="shareTitle">Partager mes entrées</strong></div>
+      <div class="pill" id="shareDesc">Nécessaire pour RESTORE multi-ordinateur.</div>
     </div>
   </div>
 
   <div class="toggle">
     <input type="checkbox" id="geoToggle" />
     <div>
-      <div><strong>Autoriser GPS</strong> (optionnel)</div>
-      <div class="pill">Sinon on garde seulement le fuseau horaire.</div>
+      <div><strong id="geoTitle">Autoriser GPS</strong> <span class="pill" id="geoOpt">(optionnel)</span></div>
+      <div class="pill" id="geoDesc">Sinon on garde seulement le fuseau horaire.</div>
     </div>
   </div>
 
@@ -177,27 +175,537 @@ Traquons la Matrice et les MultiVers.</div>
   const SUPABASE_TABLE = "events";
   const EDGE_GET_EVENTS_URL = "https://tmwhcygiwfpnuzbvgyjf.functions.supabase.co/get-events-by-key";
 
+  const i18n = {
+    fr: {
+      htmlLang: "fr", dir: "ltr",
+      pageTitle: "l'ANOMALIE",
+      title: "l'ANOMALIE",
+      definition:
+`ANOMALIE [n.f.] : Discrepance, erreur de l'esperance, rupture de la norme. Indice d'une boucle temporelle ou d'un defaut systeme.
+Recense les repetitions suspectes.
+Traquons la Matrice et les MultiVers.`,
+      privacyMini: (mode, loc, id) => `Mode: ${mode} · Lieu: ${loc} · ID: ${id}`,
+      keyTitle: "Votre clé (pour continuer ailleurs)",
+      copy: "COPIER",
+      keyLinePrefix: "Clé:",
+      newKey: "NOUVELLE CLÉ",
+      restore: "RESTAURER",
+      restorePH: "Coller une clé ANOM-....",
+      restoreNote: "Le RESTORE récupère uniquement ce qui a été partagé.",
+      labelAnomaly: "Mot / Keyword",
+      inputPH: "Bataille de Lépante...",
+      enter: "ENTER",
+      clear: "CLEAR",
+      none: "Aucune anomalie détectée. Matrice stable.",
+      toastSaved: "ENREGISTRÉ",
+      toastID: "ID",
+      toastRestore: "RESTORE",
+      copied: "Clé copiée.",
+      copyFail: "Copie impossible.",
+      newKeyMade: "Nouvelle clé créée.",
+      invalidKey: "Clé invalide.",
+      restored: "Liste restaurée.",
+      restoreFail: "Restauration impossible.",
+      bannerTitle: "Protection des données",
+      bannerDesc: "Par défaut, tout reste en local. Si tu coches “Partager”, on envoie aussi au cloud (anonyme) pour analyse de motifs.",
+      shareTitle: "Partager mes entrées",
+      shareDesc: "Nécessaire pour RESTORE multi-ordinateur.",
+      geoTitle: "Autoriser GPS",
+      geoOpt: "(optionnel)",
+      geoDesc: "Sinon on garde seulement le fuseau horaire.",
+      bannerLater: "Continuer en local",
+      bannerAccept: "Enregistrer mes choix",
+      modePublic: "PUBLIC",
+      modeLocal: "LOCAL",
+      locGpsOrTz: "GPS ou fuseau",
+      locTzOnly: "fuseau horaire"
+    },
+
+    en: {
+      htmlLang: "en", dir: "ltr",
+      pageTitle: "the ANOMALY",
+      title: "the ANOMALY",
+      definition:
+`ANOMALY: Deviation from what is normal or expected; an exception to the rule.
+Logs suspicious repetitions.
+Track the Matrix and the Multiverse.`,
+      privacyMini: (mode, loc, id) => `Mode: ${mode} · Location: ${loc} · ID: ${id}`,
+      keyTitle: "Your key (continue elsewhere)",
+      copy: "COPY",
+      keyLinePrefix: "Key:",
+      newKey: "NEW KEY",
+      restore: "RESTORE",
+      restorePH: "Paste an ANOM-.... key",
+      restoreNote: "RESTORE only retrieves what was shared.",
+      labelAnomaly: "Word / Keyword",
+      inputPH: "Battle of Lepanto...",
+      enter: "ENTER",
+      clear: "CLEAR",
+      none: "No anomaly detected. Matrix stable.",
+      toastSaved: "SAVED",
+      toastID: "ID",
+      toastRestore: "RESTORE",
+      copied: "Key copied.",
+      copyFail: "Copy failed.",
+      newKeyMade: "New key created.",
+      invalidKey: "Invalid key.",
+      restored: "List restored.",
+      restoreFail: "Restore failed.",
+      bannerTitle: "Data protection",
+      bannerDesc: "By default everything stays local. If you enable “Share”, entries are also sent to the cloud (anonymous) for pattern analysis.",
+      shareTitle: "Share my entries",
+      shareDesc: "Required for cross-device RESTORE.",
+      geoTitle: "Allow GPS",
+      geoOpt: "(optional)",
+      geoDesc: "Otherwise only the time zone is stored.",
+      bannerLater: "Keep local only",
+      bannerAccept: "Save my choices",
+      modePublic: "PUBLIC",
+      modeLocal: "LOCAL",
+      locGpsOrTz: "GPS or time zone",
+      locTzOnly: "time zone"
+    },
+
+    it: {
+      htmlLang: "it", dir: "ltr",
+      pageTitle: "l'ANOMALIA",
+      title: "l'ANOMALIA",
+      definition:
+`ANOMALIA: Deviazione da ciò che è normale o atteso; eccezione alla regola.
+Registra le ripetizioni sospette.
+Diamo la caccia alla Matrice e ai MultiVersi.`,
+      privacyMini: (mode, loc, id) => `Modalità: ${mode} · Luogo: ${loc} · ID: ${id}`,
+      keyTitle: "La tua chiave (per continuare altrove)",
+      copy: "COPIA",
+      keyLinePrefix: "Chiave:",
+      newKey: "NUOVA CHIAVE",
+      restore: "RIPRISTINA",
+      restorePH: "Incolla una chiave ANOM-....",
+      restoreNote: "Il RIPRISTINO recupera solo ciò che è stato condiviso.",
+      labelAnomaly: "Parola chiave",
+      inputPH: "Battaglia di Lepanto...",
+      enter: "INVIO",
+      clear: "PULISCI",
+      none: "Nessuna anomalia rilevata. Matrice stabile.",
+      toastSaved: "SALVATO",
+      toastID: "ID",
+      toastRestore: "RIPRISTINO",
+      copied: "Chiave copiata.",
+      copyFail: "Copia non riuscita.",
+      newKeyMade: "Nuova chiave creata.",
+      invalidKey: "Chiave non valida.",
+      restored: "Lista ripristinata.",
+      restoreFail: "Ripristino non riuscito.",
+      bannerTitle: "Protezione dati",
+      bannerDesc: "Di default tutto resta in locale. Se attivi “Condividi”, inviamo anche al cloud (anonimo) per analisi di pattern.",
+      shareTitle: "Condividi le mie voci",
+      shareDesc: "Necessario per RIPRISTINO multi-dispositivo.",
+      geoTitle: "Consenti GPS",
+      geoOpt: "(opzionale)",
+      geoDesc: "Altrimenti salviamo solo il fuso orario.",
+      bannerLater: "Continua in locale",
+      bannerAccept: "Salva le scelte",
+      modePublic: "PUBBLICO",
+      modeLocal: "LOCALE",
+      locGpsOrTz: "GPS o fuso",
+      locTzOnly: "fuso orario"
+    },
+
+    es: {
+      htmlLang: "es", dir: "ltr",
+      pageTitle: "la ANOMALÍA",
+      title: "la ANOMALÍA",
+      definition:
+`ANOMALÍA: Desviación de lo normal o esperado; excepción a la regla.
+Registra repeticiones sospechosas.
+Rastreemos la Matriz y los Multiversos.`,
+      privacyMini: (mode, loc, id) => `Modo: ${mode} · Ubicación: ${loc} · ID: ${id}`,
+      keyTitle: "Tu clave (para continuar en otro lugar)",
+      copy: "COPIAR",
+      keyLinePrefix: "Clave:",
+      newKey: "NUEVA CLAVE",
+      restore: "RESTAURAR",
+      restorePH: "Pega una clave ANOM-....",
+      restoreNote: "RESTAURAR solo recupera lo compartido.",
+      labelAnomaly: "Palabra clave",
+      inputPH: "Batalla de Lepanto...",
+      enter: "ENTER",
+      clear: "BORRAR",
+      none: "No se detectó ninguna anomalía. Matriz estable.",
+      toastSaved: "GUARDADO",
+      toastID: "ID",
+      toastRestore: "RESTAURAR",
+      copied: "Clave copiada.",
+      copyFail: "No se pudo copiar.",
+      newKeyMade: "Nueva clave creada.",
+      invalidKey: "Clave inválida.",
+      restored: "Lista restaurada.",
+      restoreFail: "No se pudo restaurar.",
+      bannerTitle: "Protección de datos",
+      bannerDesc: "Por defecto todo queda local. Si activas “Compartir”, también se envía a la nube (anónimo) para analizar patrones.",
+      shareTitle: "Compartir mis entradas",
+      shareDesc: "Necesario para restaurar en varios dispositivos.",
+      geoTitle: "Permitir GPS",
+      geoOpt: "(opcional)",
+      geoDesc: "Si no, solo se guarda la zona horaria.",
+      bannerLater: "Seguir en local",
+      bannerAccept: "Guardar opciones",
+      modePublic: "PÚBLICO",
+      modeLocal: "LOCAL",
+      locGpsOrTz: "GPS o zona horaria",
+      locTzOnly: "zona horaria"
+    },
+
+    pt: {
+      htmlLang: "pt", dir: "ltr",
+      pageTitle: "a ANOMALIA",
+      title: "a ANOMALIA",
+      definition:
+`ANOMALIA: Desvio do normal ou esperado; exceção à regra.
+Registra repetições suspeitas.
+Rastreemos a Matriz e os Multiversos.`,
+      privacyMini: (mode, loc, id) => `Modo: ${mode} · Local: ${loc} · ID: ${id}`,
+      keyTitle: "Sua chave (para continuar em outro lugar)",
+      copy: "COPIAR",
+      keyLinePrefix: "Chave:",
+      newKey: "NOVA CHAVE",
+      restore: "RESTAURAR",
+      restorePH: "Cole uma chave ANOM-....",
+      restoreNote: "RESTORE recupera apenas o que foi compartilhado.",
+      labelAnomaly: "Palavra-chave",
+      inputPH: "Batalha de Lepanto...",
+      enter: "ENTER",
+      clear: "LIMPAR",
+      none: "Nenhuma anomalia detectada. Matriz estável.",
+      toastSaved: "SALVO",
+      toastID: "ID",
+      toastRestore: "RESTAURAR",
+      copied: "Chave copiada.",
+      copyFail: "Falha ao copiar.",
+      newKeyMade: "Nova chave criada.",
+      invalidKey: "Chave inválida.",
+      restored: "Lista restaurada.",
+      restoreFail: "Falha ao restaurar.",
+      bannerTitle: "Proteção de dados",
+      bannerDesc: "Por padrão tudo fica local. Se ativar “Compartilhar”, enviamos também para a nuvem (anônimo) para análise de padrões.",
+      shareTitle: "Compartilhar minhas entradas",
+      shareDesc: "Necessário para RESTORE multi-dispositivo.",
+      geoTitle: "Permitir GPS",
+      geoOpt: "(opcional)",
+      geoDesc: "Caso contrário, apenas o fuso horário é guardado.",
+      bannerLater: "Continuar local",
+      bannerAccept: "Salvar escolhas",
+      modePublic: "PÚBLICO",
+      modeLocal: "LOCAL",
+      locGpsOrTz: "GPS ou fuso",
+      locTzOnly: "fuso horário"
+    },
+
+    de: {
+      htmlLang: "de", dir: "ltr",
+      pageTitle: "die ANOMALIE",
+      title: "die ANOMALIE",
+      definition:
+`ANOMALIE: Abweichung vom Normalen oder Erwarteten; Ausnahme von der Regel.
+Protokolliert verdächtige Wiederholungen.
+Jagen wir Matrix und Multiversen.`,
+      privacyMini: (mode, loc, id) => `Modus: ${mode} · Ort: ${loc} · ID: ${id}`,
+      keyTitle: "Dein Schlüssel (um anderswo fortzufahren)",
+      copy: "KOPIEREN",
+      keyLinePrefix: "Schlüssel:",
+      newKey: "NEUER SCHLÜSSEL",
+      restore: "WIEDERHERSTELLEN",
+      restorePH: "ANOM-.... Schlüssel einfügen",
+      restoreNote: "Wiederherstellung lädt nur Geteiltes.",
+      labelAnomaly: "Stichwort",
+      inputPH: "Schlacht von Lepanto...",
+      enter: "ENTER",
+      clear: "LÖSCHEN",
+      none: "Keine Anomalie erkannt. Matrix stabil.",
+      toastSaved: "GESPEICHERT",
+      toastID: "ID",
+      toastRestore: "RESTORE",
+      copied: "Schlüssel kopiert.",
+      copyFail: "Kopieren fehlgeschlagen.",
+      newKeyMade: "Neuer Schlüssel erstellt.",
+      invalidKey: "Ungültiger Schlüssel.",
+      restored: "Liste wiederhergestellt.",
+      restoreFail: "Wiederherstellung fehlgeschlagen.",
+      bannerTitle: "Datenschutz",
+      bannerDesc: "Standardmäßig bleibt alles lokal. Wenn du „Teilen“ aktivierst, senden wir anonym in die Cloud zur Musteranalyse.",
+      shareTitle: "Meine Einträge teilen",
+      shareDesc: "Erforderlich für Geräte-übergreifende Wiederherstellung.",
+      geoTitle: "GPS erlauben",
+      geoOpt: "(optional)",
+      geoDesc: "Sonst speichern wir nur die Zeitzone.",
+      bannerLater: "Lokal fortfahren",
+      bannerAccept: "Auswahl speichern",
+      modePublic: "ÖFFENTLICH",
+      modeLocal: "LOKAL",
+      locGpsOrTz: "GPS oder Zeitzone",
+      locTzOnly: "Zeitzone"
+    },
+
+    ru: {
+      htmlLang: "ru", dir: "ltr",
+      pageTitle: "АНОМАЛИЯ",
+      title: "АНОМАЛИЯ",
+      definition:
+`АНОМАЛИЯ: Отклонение от нормы или ожидаемого; исключение из правила.
+Фиксирует подозрительные повторения.
+Отследим Матрицу и Мультивселенную.`,
+      privacyMini: (mode, loc, id) => `Режим: ${mode} · Место: ${loc} · ID: ${id}`,
+      keyTitle: "Ваш ключ (чтобы продолжить на другом устройстве)",
+      copy: "КОПИРОВАТЬ",
+      keyLinePrefix: "Ключ:",
+      newKey: "НОВЫЙ КЛЮЧ",
+      restore: "ВОССТАНОВИТЬ",
+      restorePH: "Вставьте ключ ANOM-....",
+      restoreNote: "Восстановление загружает только то, что было отправлено.",
+      labelAnomaly: "Ключевое слово",
+      inputPH: "Битва при Лепанто...",
+      enter: "ВВОД",
+      clear: "ОЧИСТИТЬ",
+      none: "Аномалий не обнаружено. Матрица стабильна.",
+      toastSaved: "СОХРАНЕНО",
+      toastID: "ID",
+      toastRestore: "ВОССТАНОВИТЬ",
+      copied: "Ключ скопирован.",
+      copyFail: "Не удалось скопировать.",
+      newKeyMade: "Создан новый ключ.",
+      invalidKey: "Неверный ключ.",
+      restored: "Список восстановлен.",
+      restoreFail: "Не удалось восстановить.",
+      bannerTitle: "Защита данных",
+      bannerDesc: "По умолчанию всё хранится локально. Если включить «Поделиться», данные анонимно отправятся в облако для анализа шаблонов.",
+      shareTitle: "Поделиться моими записями",
+      shareDesc: "Нужно для восстановления на других устройствах.",
+      geoTitle: "Разрешить GPS",
+      geoOpt: "(необязательно)",
+      geoDesc: "Иначе сохраняется только часовой пояс.",
+      bannerLater: "Оставить локально",
+      bannerAccept: "Сохранить выбор",
+      modePublic: "ПУБЛИЧНО",
+      modeLocal: "ЛОКАЛЬНО",
+      locGpsOrTz: "GPS или часовой пояс",
+      locTzOnly: "часовой пояс"
+    },
+
+    ar: {
+      htmlLang: "ar", dir: "rtl",
+      pageTitle: "الشذوذ",
+      title: "الشذوذ",
+      definition:
+`الشذوذ: انحراف عن الطبيعي أو المتوقع؛ استثناء عن القاعدة.
+يسجّل التكرارات المشبوهة.
+لنطارد المصفوفة وتعدد الأكوان.`,
+      privacyMini: (mode, loc, id) => `الوضع: ${mode} · الموقع: ${loc} · ID: ${id}`,
+      keyTitle: "مفتاحك (للمتابعة على جهاز آخر)",
+      copy: "نسخ",
+      keyLinePrefix: "المفتاح:",
+      newKey: "مفتاح جديد",
+      restore: "استعادة",
+      restorePH: "الصق مفتاح ANOM-....",
+      restoreNote: "الاستعادة تجلب فقط ما تم مشاركته.",
+      labelAnomaly: "كلمة مفتاحية",
+      inputPH: "معركة ليبانتو...",
+      enter: "إدخال",
+      clear: "مسح",
+      none: "لم يتم رصد أي شذوذ. المصفوفة مستقرة.",
+      toastSaved: "تم الحفظ",
+      toastID: "ID",
+      toastRestore: "استعادة",
+      copied: "تم نسخ المفتاح.",
+      copyFail: "تعذر النسخ.",
+      newKeyMade: "تم إنشاء مفتاح جديد.",
+      invalidKey: "مفتاح غير صالح.",
+      restored: "تمت الاستعادة.",
+      restoreFail: "تعذرت الاستعادة.",
+      bannerTitle: "حماية البيانات",
+      bannerDesc: "افتراضياً كل شيء يبقى محلياً. إذا فعّلت «مشاركة»، سيتم الإرسال إلى السحابة (مجهول) لتحليل الأنماط.",
+      shareTitle: "مشاركة إدخالاتي",
+      shareDesc: "مطلوب للاستعادة عبر أجهزة متعددة.",
+      geoTitle: "السماح بـ GPS",
+      geoOpt: "(اختياري)",
+      geoDesc: "وإلا سنحتفظ فقط بالمنطقة الزمنية.",
+      bannerLater: "متابعة محلياً",
+      bannerAccept: "حفظ الخيارات",
+      modePublic: "عام",
+      modeLocal: "محلي",
+      locGpsOrTz: "GPS أو المنطقة الزمنية",
+      locTzOnly: "المنطقة الزمنية"
+    },
+
+    hi: {
+      htmlLang: "hi", dir: "ltr",
+      pageTitle: "विसंगति",
+      title: "विसंगति",
+      definition:
+`विसंगति: सामान्य या अपेक्षित से विचलन; नियम का अपवाद।
+संदिग्ध दोहराव दर्ज करता है।
+मैट्रिक्स और मल्टीवर्स का पीछा करें।`,
+      privacyMini: (mode, loc, id) => `मोड: ${mode} · स्थान: ${loc} · ID: ${id}`,
+      keyTitle: "आपकी कुंजी (दूसरे डिवाइस पर जारी रखने के लिए)",
+      copy: "कॉपी",
+      keyLinePrefix: "कुंजी:",
+      newKey: "नई कुंजी",
+      restore: "रिस्टोर",
+      restorePH: "ANOM-.... कुंजी पेस्ट करें",
+      restoreNote: "रिस्टोर सिर्फ साझा किए गए डेटा को लाता है।",
+      labelAnomaly: "कीवर्ड",
+      inputPH: "लेपैंटो की लड़ाई...",
+      enter: "ENTER",
+      clear: "क्लियर",
+      none: "कोई विसंगति नहीं मिली। मैट्रिक्स स्थिर।",
+      toastSaved: "सेव्ड",
+      toastID: "ID",
+      toastRestore: "रिस्टोर",
+      copied: "कुंजी कॉपी हो गई।",
+      copyFail: "कॉपी नहीं हुआ।",
+      newKeyMade: "नई कुंजी बन गई।",
+      invalidKey: "अमान्य कुंजी।",
+      restored: "लिस्ट रिस्टोर हो गई।",
+      restoreFail: "रिस्टोर फेल।",
+      bannerTitle: "डेटा सुरक्षा",
+      bannerDesc: "डिफ़ॉल्ट रूप से सब कुछ लोकल रहता है। अगर “Share” चालू किया, तो पैटर्न विश्लेषण के लिए (अनाम) क्लाउड पर भेजा जाएगा।",
+      shareTitle: "मेरे इनपुट शेयर करें",
+      shareDesc: "मल्टी-डिवाइस रिस्टोर के लिए ज़रूरी।",
+      geoTitle: "GPS अनुमति दें",
+      geoOpt: "(वैकल्पिक)",
+      geoDesc: "नहीं तो सिर्फ टाइम ज़ोन रखा जाएगा।",
+      bannerLater: "लोकल रखें",
+      bannerAccept: "चॉइस सेव करें",
+      modePublic: "PUBLIC",
+      modeLocal: "LOCAL",
+      locGpsOrTz: "GPS या टाइम ज़ोन",
+      locTzOnly: "टाइम ज़ोन"
+    },
+
+    zh: {
+      htmlLang: "zh", dir: "ltr",
+      pageTitle: "异常",
+      title: "异常",
+      definition:
+`异常：偏离常态或预期的情况；规则之外的例外。
+记录可疑的重复。
+追踪矩阵与多元宇宙。`,
+      privacyMini: (mode, loc, id) => `模式：${mode} · 位置：${loc} · ID: ${id}`,
+      keyTitle: "你的密钥（用于在其他设备继续）",
+      copy: "复制",
+      keyLinePrefix: "密钥：",
+      newKey: "新密钥",
+      restore: "恢复",
+      restorePH: "粘贴 ANOM-.... 密钥",
+      restoreNote: "恢复仅获取已分享的数据。",
+      labelAnomaly: "关键词",
+      inputPH: "勒班陀之战…",
+      enter: "ENTER",
+      clear: "清空",
+      none: "未检测到异常。矩阵稳定。",
+      toastSaved: "已保存",
+      toastID: "ID",
+      toastRestore: "恢复",
+      copied: "已复制密钥。",
+      copyFail: "复制失败。",
+      newKeyMade: "已创建新密钥。",
+      invalidKey: "无效密钥。",
+      restored: "已恢复列表。",
+      restoreFail: "恢复失败。",
+      bannerTitle: "数据保护",
+      bannerDesc: "默认情况下数据仅保存在本地。启用“分享”后，会匿名发送到云端用于模式分析。",
+      shareTitle: "分享我的记录",
+      shareDesc: "跨设备恢复所必需。",
+      geoTitle: "允许 GPS",
+      geoOpt: "（可选）",
+      geoDesc: "否则仅保存时区信息。",
+      bannerLater: "仅本地使用",
+      bannerAccept: "保存选择",
+      modePublic: "公开",
+      modeLocal: "本地",
+      locGpsOrTz: "GPS 或时区",
+      locTzOnly: "时区"
+    },
+
+    ja: {
+      htmlLang: "ja", dir: "ltr",
+      pageTitle: "異常",
+      title: "異常",
+      definition:
+`異常：通常や期待される状態からの逸脱。規則の例外。
+疑わしい反復を記録する。
+マトリクスとマルチバースを追跡する。`,
+      privacyMini: (mode, loc, id) => `モード: ${mode} · 場所: ${loc} · ID: ${id}`,
+      keyTitle: "キー（別の端末で続けるため）",
+      copy: "コピー",
+      keyLinePrefix: "キー:",
+      newKey: "新しいキー",
+      restore: "復元",
+      restorePH: "ANOM-.... キーを貼り付け",
+      restoreNote: "復元は共有されたもののみ取得します。",
+      labelAnomaly: "キーワード",
+      inputPH: "レパントの海戦…",
+      enter: "ENTER",
+      clear: "クリア",
+      none: "異常は検出されませんでした。マトリクスは安定。",
+      toastSaved: "保存しました",
+      toastID: "ID",
+      toastRestore: "復元",
+      copied: "キーをコピーしました。",
+      copyFail: "コピーできませんでした。",
+      newKeyMade: "新しいキーを作成しました。",
+      invalidKey: "無効なキー。",
+      restored: "リストを復元しました。",
+      restoreFail: "復元に失敗しました。",
+      bannerTitle: "データ保護",
+      bannerDesc: "既定ではすべてローカルに保存されます。「共有」を有効にすると、匿名でクラウドへ送信しパターン分析に使用します。",
+      shareTitle: "入力を共有する",
+      shareDesc: "複数端末での復元に必要です。",
+      geoTitle: "GPS を許可",
+      geoOpt: "（任意）",
+      geoDesc: "拒否した場合はタイムゾーンのみ保存します。",
+      bannerLater: "ローカルのみ",
+      bannerAccept: "選択を保存",
+      modePublic: "PUBLIC",
+      modeLocal: "LOCAL",
+      locGpsOrTz: "GPS またはタイムゾーン",
+      locTzOnly: "タイムゾーン"
+    }
+  };
+
   const el = (id) => document.getElementById(id);
   const $ = {
+    title: el("title"),
+    definition: el("definition"),
+    privacyMini: el("privacyMini"),
+    keyTitle: el("keyTitle"),
+    copyKeyBtn: el("copyKeyBtn"),
+    newKeyBtn: el("newKeyBtn"),
+    restoreBtn: el("restoreBtn"),
+    restoreKeyInput: el("restoreKeyInput"),
+    restoreNote: el("restoreNote"),
+    labelAnomaly: el("labelAnomaly"),
     input: el("anomalyInput"),
     enter: el("enterBtn"),
     clear: el("clearBtn"),
     log: el("log"),
-    langSelect: el("langSelect"),
     userKeyView: el("userKeyView"),
-    copyKeyBtn: el("copyKeyBtn"),
-    newKeyBtn: el("newKeyBtn"),
-    restoreKeyInput: el("restoreKeyInput"),
-    restoreBtn: el("restoreBtn"),
     toast: el("toast"),
     toastTitle: el("toastTitle"),
     toastText: el("toastText"),
-    privacyMini: el("privacyMini"),
+    langSelect: el("langSelect"),
+
     banner: el("consentBanner"),
-    shareToggle: el("shareToggle"),
-    geoToggle: el("geoToggle"),
+    bannerTitle: el("bannerTitle"),
+    bannerDesc: el("bannerDesc"),
+    shareTitle: el("shareTitle"),
+    shareDesc: el("shareDesc"),
+    geoTitle: el("geoTitle"),
+    geoOpt: el("geoOpt"),
+    geoDesc: el("geoDesc"),
     bannerLater: el("bannerLater"),
     bannerAccept: el("bannerAccept"),
+    shareToggle: el("shareToggle"),
+    geoToggle: el("geoToggle"),
   };
 
   const store = {
@@ -229,6 +737,7 @@ Traquons la Matrice et les MultiVers.</div>
   let consent = store.get("consent", { share:false, geo:false, decided:false });
   let anomalies = store.get("anomalies", []);
   let lang = store.get("lang", "fr");
+  if (!i18n[lang]) lang = "fr";
 
   let tz = "";
   try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch { tz = ""; }
@@ -256,32 +765,72 @@ Traquons la Matrice et les MultiVers.</div>
   }
 
   function renderLog(){
+    const t = i18n[lang] || i18n.fr;
     const list = anomalies.slice(0,12);
     if (!list.length) {
-      $.log.innerHTML = `<div class="muted" style="text-align:center; padding:10px 0;">Aucune anomalie détectée. Matrice stable.</div>`;
+      $.log.innerHTML = `<div class="muted" style="text-align:center; padding:10px 0;">${escapeHtml(t.none)}</div>`;
       return;
     }
     $.log.innerHTML = list.map(a => `
       <div class="entry">
         <div class="text">&gt; ${escapeHtml(a.text)}</div>
         <div class="meta">
-          <span>[DATA: ${a.date}] [${a.time}]</span>
+          <span>[DATA: ${escapeHtml(a.date)}] [${escapeHtml(a.time)}]</span>
           <span>[LIEU: ${escapeHtml(a.location||"-")}]</span>
         </div>
       </div>
     `).join("");
   }
 
-  function refreshUI(){
-    $.userKeyView.textContent = userKey;
-    $.privacyMini.textContent = `Mode: ${consent.share ? "PUBLIC" : "LOCAL"} · Lieu: ${consent.geo ? "GPS ou fuseau" : "fuseau horaire"} · ID: ${userKey}`;
+  function applyLang() {
+    const t = i18n[lang] || i18n.fr;
+
+    // html language + direction
+    document.documentElement.lang = t.htmlLang || "fr";
+    document.documentElement.dir = t.dir || "ltr";
+    document.title = t.pageTitle || "l'ANOMALIE";
+
+    // top section
+    $.title.textContent = t.title;
+    $.definition.textContent = t.definition;
+
+    // key panel
+    $.keyTitle.textContent = t.keyTitle;
+    $.copyKeyBtn.textContent = t.copy;
+    $.newKeyBtn.textContent = t.newKey;
+    $.restoreBtn.textContent = t.restore;
+    $.restoreKeyInput.placeholder = t.restorePH;
+    $.restoreNote.textContent = t.restoreNote;
+
+    // input panel
+    $.labelAnomaly.textContent = t.labelAnomaly;
+    $.input.placeholder = t.inputPH;
+    $.enter.textContent = t.enter;
+    $.clear.textContent = t.clear;
+
+    // banner
+    $.bannerTitle.textContent = t.bannerTitle;
+    $.bannerDesc.textContent = t.bannerDesc;
+    $.shareTitle.textContent = t.shareTitle;
+    $.shareDesc.textContent = t.shareDesc;
+    $.geoTitle.textContent = t.geoTitle;
+    $.geoOpt.textContent = t.geoOpt;
+    $.geoDesc.textContent = t.geoDesc;
+    $.bannerLater.textContent = t.bannerLater;
+    $.bannerAccept.textContent = t.bannerAccept;
+
+    // privacy line
+    const mode = consent.share ? (t.modePublic || "PUBLIC") : (t.modeLocal || "LOCAL");
+    const loc = consent.geo ? (t.locGpsOrTz || "GPS or time zone") : (t.locTzOnly || "time zone");
+    $.privacyMini.textContent = t.privacyMini(mode, loc, userKey);
+
     $.langSelect.value = lang;
+    $.userKeyView.textContent = userKey;
     renderLog();
   }
 
   async function sendToServer(entry){
     if (!consent.share) return;
-    if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("COLLE_ICI")) return;
 
     const url = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}`;
     const payload = {
@@ -308,11 +857,19 @@ Traquons la Matrice et les MultiVers.</div>
   }
 
   async function restoreFromEdge(key){
+    const t = i18n[lang] || i18n.fr;
+
     const res = await fetch(EDGE_GET_EVENTS_URL, {
       method:"POST",
       headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({ user_key:key, limit:200 })
     });
+
+    if (!res.ok) {
+      toast(t.toastRestore, t.restoreFail);
+      return;
+    }
+
     const data = await res.json();
     const rows = Array.isArray(data?.events) ? data.events : [];
 
@@ -332,7 +889,7 @@ Traquons la Matrice et les MultiVers.</div>
     });
 
     store.set("anomalies", anomalies);
-    toast("RESTORE", "Liste restaurée.");
+    toast(t.toastRestore, t.restored);
     renderLog();
   }
 
@@ -340,6 +897,7 @@ Traquons la Matrice et les MultiVers.</div>
     const raw = ($.input.value || "").trim();
     if (!raw) return;
 
+    const t = i18n[lang] || i18n.fr;
     const {date,time,iso} = nowStamp();
     const entry = { text:raw, date, time, iso, lang, location:autoLocation() };
 
@@ -347,7 +905,7 @@ Traquons la Matrice et les MultiVers.</div>
     store.set("anomalies", anomalies);
     $.input.value = "";
     renderLog();
-    toast("SAVED", `${entry.text} @ ${entry.location}`);
+    toast(t.toastSaved, `${entry.text} @ ${entry.location}`);
     try { await sendToServer(entry); } catch(e){ console.warn(e); }
   }
 
@@ -358,30 +916,38 @@ Traquons la Matrice et les MultiVers.</div>
     $.geoToggle.checked = !!consent.geo;
   }
 
+  // events
   $.enter.addEventListener("click", addAnomaly);
   $.input.addEventListener("keydown", (e) => { if (e.key === "Enter") addAnomaly(); });
   $.clear.addEventListener("click", () => { anomalies = []; store.set("anomalies", anomalies); renderLog(); });
 
-  $.langSelect.addEventListener("change", () => { lang = $.langSelect.value; store.set("lang", lang); });
+  $.langSelect.addEventListener("change", () => {
+    lang = $.langSelect.value;
+    store.set("lang", lang);
+    applyLang();
+  });
 
   $.copyKeyBtn.addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText(userKey); toast("ID", "Clé copiée."); }
-    catch { toast("ID", "Copie impossible."); }
+    const t = i18n[lang] || i18n.fr;
+    try { await navigator.clipboard.writeText(userKey); toast(t.toastID, t.copied); }
+    catch { toast(t.toastID, t.copyFail); }
   });
 
   $.newKeyBtn.addEventListener("click", () => {
+    const t = i18n[lang] || i18n.fr;
     userKey = genUserKey();
     store.set("userKey", userKey);
-    refreshUI();
-    toast("ID", "Nouvelle clé créée.");
+    applyLang();
+    toast(t.toastID, t.newKeyMade);
   });
 
   $.restoreBtn.addEventListener("click", async () => {
+    const t = i18n[lang] || i18n.fr;
     const k = ($.restoreKeyInput.value || "").trim().toUpperCase();
-    if (!k.startsWith("ANOM-")) return toast("RESTORE", "Clé invalide.");
+    if (!k.startsWith("ANOM-")) return toast(t.toastRestore, t.invalidKey);
     userKey = k;
     store.set("userKey", userKey);
-    refreshUI();
+    applyLang();
     await restoreFromEdge(userKey);
   });
 
@@ -389,7 +955,8 @@ Traquons la Matrice et les MultiVers.</div>
     consent = { share:false, geo:false, decided:true };
     store.set("consent", consent);
     $.banner.style.display = "none";
-    refreshUI();
+    gps = null;
+    applyLang();
   });
 
   $.bannerAccept.addEventListener("click", () => {
@@ -397,12 +964,13 @@ Traquons la Matrice et les MultiVers.</div>
     store.set("consent", consent);
     $.banner.style.display = "none";
     requestGeoIfAllowed();
-    refreshUI();
+    applyLang();
   });
 
+  // init
   showBannerIfNeeded();
   requestGeoIfAllowed();
-  refreshUI();
+  applyLang();
 })();
 </script>
 </body>
