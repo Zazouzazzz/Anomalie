@@ -1,40 +1,198 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>l'ANOMALIE</title>
+<style>
+  :root { --g:#00ff41; --panel: rgba(0,0,0,.78); }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0; min-height:100vh;
+    background:#000;
+    background-image: url("idea3.jpeg");
+    background-size: contain;
+    background-position: center top;
+    background-repeat: repeat;
+    color: var(--g);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:1;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.15), rgba(0,0,0,.15) 1px, transparent 1px, transparent 2px);
+  }
+  .wrap{ position:relative; z-index:2; min-height:100vh; display:grid; place-items:center; padding:22px 14px 120px; }
+  .panel{
+    width:min(820px, 94vw);
+    background: var(--panel);
+    border:2px solid rgba(0,255,65,.85);
+    border-radius:18px;
+    padding:18px 16px 14px;
+    box-shadow: 0 0 34px rgba(0,255,65,.16);
+    backdrop-filter: blur(6px);
+  }
+  .box{
+    background: rgba(0,0,0,.45);
+    border:1px solid rgba(0,255,65,.45);
+    border-radius:14px;
+    padding:14px;
+  }
+  h1{ margin:0; font-size:14px; letter-spacing:.06em; color:#bfffd0; text-shadow:0 0 2px var(--g); }
+  #definition{ margin-top:10px; font-size:13px; line-height:1.55; color:#e9fff0; text-shadow:0 0 2px rgba(0,255,65,.55); white-space:pre-wrap; }
+  .muted{ color: rgba(0,255,65,.78); font-size:12px; line-height:1.35; white-space:pre-wrap; }
+  .row{ display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+  .btn{
+    border:2px solid rgba(0,255,65,.8);
+    background: rgba(0,0,0,.7);
+    color:#bfffd0;
+    padding:10px 12px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:700;
+  }
+  .btn.primary{ background: rgba(0,255,65,.85); color:#000; border-color: rgba(0,255,65,1); }
+  label{ display:block; margin:10px 0 6px; color: rgba(0,255,65,.9); font-size:12px; }
+  input{
+    width:100%;
+    background:#000;
+    border:2px solid rgba(0,255,65,.75);
+    color: var(--g);
+    padding:10px 10px;
+    border-radius:10px;
+    outline:none;
+    font-size:18px;
+  }
+  .controls{ margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; }
+  .log{ margin-top:12px; border-top:1px dashed rgba(0,255,65,.35); padding-top:10px; max-height:360px; overflow:auto; }
+  .entry{ padding:8px 0; border-bottom:1px dotted rgba(0,255,65,.25); }
+  .entry .text{ font-size:20px; text-shadow:0 0 2px rgba(0,255,65,.6); }
+  .entry .meta{ display:flex; justify-content:space-between; gap:10px; font-size:12px; color: rgba(0,255,65,.75); margin-top:2px; flex-wrap:wrap; }
+  .toast{ display:none; margin-top:10px; padding:10px 12px; border-radius:12px; border:1px solid rgba(0,255,65,.55); background: rgba(0,0,0,.65); color:#fff; text-align:center; }
+  .toast.show{ display:block; }
+  code{ color:#bfffd0; }
+
+  .banner{
+    position: fixed;
+    left: 50%; bottom: 16px;
+    transform: translateX(-50%);
+    width: min(860px, 94vw);
+    z-index: 3;
+    background: rgba(0,0,0,.88);
+    border: 1px solid rgba(0,255,65,.55);
+    border-radius: 16px;
+    padding: 12px 12px;
+    box-shadow: 0 0 24px rgba(0,255,65,.12);
+    backdrop-filter: blur(6px);
+  }
+  .toggle{ display:flex; gap:10px; align-items:flex-start; margin-top:6px; }
+  .toggle input{ width:18px; height:18px; margin-top:2px; accent-color: var(--g); }
+  .pill{ font-size:11px; color: rgba(0,255,65,.7); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel">
+    <section class="box">
+      <div class="row">
+        <h1>l'ANOMALIE</h1>
+        <select class="btn" id="langSelect">
+          <option value="fr">FR</option><option value="en">EN</option><option value="it">IT</option>
+          <option value="es">ES</option><option value="pt">PT</option><option value="de">DE</option>
+          <option value="ru">RU</option><option value="ar">AR</option><option value="hi">HI</option>
+          <option value="zh">中文</option><option value="ja">日本語</option>
+        </select>
+      </div>
+
+      <div id="definition">ANOMALIE [n.f.] : Discrepance, erreur de l'esperance, rupture de la norme. Indice d'une boucle temporelle ou d'un defaut systeme.
+Recense les repetitions suspectes.
+Traquons la Matrice et les MultiVers.</div>
+
+      <div class="muted" style="margin-top:10px" id="privacyMini"></div>
+
+      <div class="box" style="margin-top:12px">
+        <div class="row">
+          <div class="muted" style="font-weight:800">Votre clé (pour continuer ailleurs)</div>
+          <button class="btn" id="copyKeyBtn">COPIER</button>
+        </div>
+        <div class="muted" style="margin-top:6px">Clé: <code id="userKeyView">-</code></div>
+
+        <div class="controls" style="margin-top:10px">
+          <button class="btn" id="newKeyBtn">NOUVELLE CLÉ</button>
+          <input id="restoreKeyInput" maxlength="80" placeholder="Coller une clé ANOM-...." />
+          <button class="btn primary" id="restoreBtn">RESTAURER</button>
+        </div>
+        <div class="pill" style="margin-top:6px">Le RESTORE récupère uniquement ce qui a été partagé.</div>
+      </div>
+    </section>
+
+    <section class="box" style="margin-top:14px">
+      <label for="anomalyInput">Mot / Keyword</label>
+      <input id="anomalyInput" maxlength="50" />
+
+      <div class="toast" id="toast">
+        <div style="font-weight:800; margin-bottom:6px;" id="toastTitle">SAVED</div>
+        <div id="toastText" style="font-size:20px; color:#bfffd0;"></div>
+      </div>
+
+      <div class="controls">
+        <button class="btn primary" id="enterBtn">ENTER</button>
+        <button class="btn" id="clearBtn">CLEAR</button>
+      </div>
+
+      <div class="log" id="log"></div>
+    </section>
+  </div>
+</div>
+
+<div class="banner" id="consentBanner" style="display:none;">
+  <div style="font-weight:800; color:#bfffd0; margin-bottom:6px;">Protection des données</div>
+  <div class="pill">Par défaut, tout reste en local. Si tu coches “Partager”, on envoie aussi au cloud (anonyme) pour analyse de motifs.</div>
+
+  <div class="toggle">
+    <input type="checkbox" id="shareToggle" />
+    <div>
+      <div><strong>Partager mes entrées</strong></div>
+      <div class="pill">Nécessaire pour RESTORE multi-ordinateur.</div>
+    </div>
+  </div>
+
+  <div class="toggle">
+    <input type="checkbox" id="geoToggle" />
+    <div>
+      <div><strong>Autoriser GPS</strong> (optionnel)</div>
+      <div class="pill">Sinon on garde seulement le fuseau horaire.</div>
+    </div>
+  </div>
+
+  <div class="controls" style="justify-content:flex-end;">
+    <button class="btn" id="bannerLater">Continuer en local</button>
+    <button class="btn primary" id="bannerAccept">Enregistrer mes choix</button>
+  </div>
+</div>
+
 <script>
 (() => {
-  // =========================
-  // CONFIG À REMPLACER
-  // =========================
-  const SUPABASE_URL = "https://tmwhcygiwfpnuzbvgyjf.supabase.co"; // OK
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtd2hjeWdpd2ZwbnV6YnZneWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwMTQzMDYsImV4cCI6MjA4MjU5MDMwNn0.0-9lkwRF2d7B6fLy1YBInjpQ7Lv7m4-l9fsQ9x66hKU"; // Settings > API > anon/public
+  const SUPABASE_URL = "https://tmwhcygiwfpnuzbvgyjf.supabase.co";
+  const SUPABASE_ANON_KEY = "COLLE_ICI_TA_ANON_KEY";
   const SUPABASE_TABLE = "events";
+  const EDGE_GET_EVENTS_URL = "https://tmwhcygiwfpnuzbvgyjf.functions.supabase.co/get-events-by-key";
 
-  // Ton Edge Function (RESTORE)
-  const EDGE_GET_EVENTS_URL =
-    "https://tmwhcygiwfpnuzbvgyjf.functions.supabase.co/get-events-by-key";
-
-  // =========================
-  // HELPERS DOM
-  // =========================
   const el = (id) => document.getElementById(id);
-
-  // Ces ids doivent exister dans ton HTML
   const $ = {
     input: el("anomalyInput"),
     enter: el("enterBtn"),
+    clear: el("clearBtn"),
     log: el("log"),
     langSelect: el("langSelect"),
-
-    // (si présents)
     userKeyView: el("userKeyView"),
     copyKeyBtn: el("copyKeyBtn"),
     newKeyBtn: el("newKeyBtn"),
     restoreKeyInput: el("restoreKeyInput"),
     restoreBtn: el("restoreBtn"),
-
     toast: el("toast"),
     toastTitle: el("toastTitle"),
     toastText: el("toastText"),
-
-    // Consent banner (si présents)
+    privacyMini: el("privacyMini"),
     banner: el("consentBanner"),
     shareToggle: el("shareToggle"),
     geoToggle: el("geoToggle"),
@@ -42,46 +200,35 @@
     bannerAccept: el("bannerAccept"),
   };
 
-  // =========================
-  // STORAGE
-  // =========================
   const store = {
     get(k, fallback) {
-      try {
-        const v = localStorage.getItem(k);
-        return v ? JSON.parse(v) : fallback;
-      } catch {
-        return fallback;
-      }
+      try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; }
+      catch { return fallback; }
     },
-    set(k, v) {
-      try {
-        localStorage.setItem(k, JSON.stringify(v));
-      } catch {}
-    },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
   };
 
-  // =========================
-  // USER KEY (identité)
-  // =========================
+  const pad = (n) => String(n).padStart(2,"0");
+  const nowStamp = () => {
+    const d = new Date();
+    return {
+      date: `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`,
+      time: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
+      iso: d.toISOString()
+    };
+  };
+
   function genUserKey() {
-    const raw = (crypto && crypto.randomUUID)
-      ? crypto.randomUUID().replaceAll("-", "")
-      : (Date.now().toString(16) + Math.random().toString(16).slice(2));
-    const part = raw.toUpperCase().slice(0, 16);
-    return "ANOM-" + part.slice(0, 4) + "-" + part.slice(4, 8) + "-" + part.slice(8, 12) + "-" + part.slice(12, 16);
+    const raw = crypto.randomUUID().replaceAll("-", "").toUpperCase().slice(0,16);
+    return `ANOM-${raw.slice(0,4)}-${raw.slice(4,8)}-${raw.slice(8,12)}-${raw.slice(12,16)}`;
   }
 
   let userKey = store.get("userKey", null);
-  if (!userKey) {
-    userKey = genUserKey();
-    store.set("userKey", userKey);
-  }
+  if (!userKey) { userKey = genUserKey(); store.set("userKey", userKey); }
 
-  // =========================
-  // CONSENT + GEO (optionnel)
-  // =========================
-  let consent = store.get("consent", { share: false, geo: false, decided: false });
+  let consent = store.get("consent", { share:false, geo:false, decided:false });
+  let anomalies = store.get("anomalies", []);
+  let lang = store.get("lang", "fr");
 
   let tz = "";
   try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch { tz = ""; }
@@ -91,101 +238,50 @@
     if (!consent.geo) return;
     if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        gps = `GPS:${pos.coords.latitude.toFixed(5)},${pos.coords.longitude.toFixed(5)}`;
-      },
-      () => { gps = null; },
-      { enableHighAccuracy: false, timeout: 2500, maximumAge: 600000 }
+      (pos) => gps = `GPS:${pos.coords.latitude.toFixed(5)},${pos.coords.longitude.toFixed(5)}`,
+      () => gps = null,
+      { enableHighAccuracy:false, timeout:2500, maximumAge:600000 }
     );
   }
 
-  function autoLocation() {
-    // Si GPS accepté et obtenu => GPS..., sinon timezone
-    return gps || tz || "LOCAL";
-  }
+  const autoLocation = () => gps || tz || "LOCAL";
 
-  function showBannerIfNeeded() {
-    if (!$.banner) return;
-    if (consent.decided) return;
-    if ($.shareToggle) $.shareToggle.checked = !!consent.share;
-    if ($.geoToggle) $.geoToggle.checked = !!consent.geo;
-    $.banner.style.display = "block";
-  }
+  function escapeHtml(s){ return (s||"").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-  function saveConsentFromUI() {
-    consent = {
-      share: $.shareToggle ? $.shareToggle.checked : false,
-      geo: $.geoToggle ? $.geoToggle.checked : false,
-      decided: true
-    };
-    store.set("consent", consent);
-    if ($.banner) $.banner.style.display = "none";
-    requestGeoIfAllowed();
-  }
-
-  // =========================
-  // UI helpers
-  // =========================
-  const pad = (n) => String(n).padStart(2, "0");
-
-  function nowStamp() {
-    const d = new Date();
-    const date = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-    const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    return { date, time, iso: d.toISOString() };
-  }
-
-  function escapeHtml(s) {
-    return (s || "").replace(/[&<>"']/g, (c) => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-    }[c]));
-  }
-
-  function toast(title, text) {
-    if (!$.toast) return;
-    if ($.toastTitle) $.toastTitle.textContent = title || "";
-    if ($.toastText) $.toastText.textContent = text || "";
+  function toast(title, text){
+    $.toastTitle.textContent = title;
+    $.toastText.textContent = text;
     $.toast.classList.add("show");
-    window.setTimeout(() => $.toast.classList.remove("show"), 900);
+    setTimeout(() => $.toast.classList.remove("show"), 900);
   }
 
-  // =========================
-  // DATA local
-  // =========================
-  let anomalies = store.get("anomalies", []);
-  let lang = store.get("lang", "fr");
-
-  function renderLog() {
-    if (!$.log) return;
-    const list = anomalies.slice(0, 12);
+  function renderLog(){
+    const list = anomalies.slice(0,12);
     if (!list.length) {
       $.log.innerHTML = `<div class="muted" style="text-align:center; padding:10px 0;">Aucune anomalie détectée. Matrice stable.</div>`;
       return;
     }
-
     $.log.innerHTML = list.map(a => `
       <div class="entry">
         <div class="text">&gt; ${escapeHtml(a.text)}</div>
         <div class="meta">
-          <span>[DATA: ${escapeHtml(a.date)}] [${escapeHtml(a.time)}]</span>
-          <span>[LIEU: ${escapeHtml(a.location || "-")} ]</span>
+          <span>[DATA: ${a.date}] [${a.time}]</span>
+          <span>[LIEU: ${escapeHtml(a.location||"-")}]</span>
         </div>
       </div>
     `).join("");
   }
 
-  function refreshUserKeyUI() {
-    if ($.userKeyView) $.userKeyView.textContent = userKey;
+  function refreshUI(){
+    $.userKeyView.textContent = userKey;
+    $.privacyMini.textContent = `Mode: ${consent.share ? "PUBLIC" : "LOCAL"} · Lieu: ${consent.geo ? "GPS ou fuseau" : "fuseau horaire"} · ID: ${userKey}`;
+    $.langSelect.value = lang;
+    renderLog();
   }
 
-  // =========================
-  // CLOUD: INSERT (REST)
-  // =========================
-  async function sendToServer(entry) {
+  async function sendToServer(entry){
     if (!consent.share) return;
-
-    // sécurité: si la anon key n’est pas mise, on n’envoie pas
-    if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRtd2hjeWdpd2ZwbnV6YnZneWpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwMTQzMDYsImV4cCI6MjA4MjU5MDMwNn0.0-9lkwRF2d7B6fLy1YBInjpQ7Lv7m4-l9fsQ9x66hKU")) return;
+    if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes("COLLE_ICI")) return;
 
     const url = `${SUPABASE_URL}/rest/v1/${SUPABASE_TABLE}`;
     const payload = {
@@ -197,170 +293,117 @@
       client_time: `${entry.date} ${entry.time}`
     };
 
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": "Bearer " + SUPABASE_ANON_KEY,
-          "Content-Type": "application/json",
-          "Prefer": "return=minimal"
-        },
-        body: JSON.stringify(payload)
-      });
+    const res = await fetch(url, {
+      method:"POST",
+      headers:{
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type":"application/json",
+        Prefer:"return=minimal"
+      },
+      body: JSON.stringify(payload)
+    });
 
-      if (!res.ok) {
-        const msg = await res.text();
-        console.warn("Insert failed:", msg);
-      }
-    } catch (e) {
-      console.warn("Insert failed:", e);
-    }
+    if (!res.ok) console.warn("Insert failed:", await res.text());
   }
 
-  // =========================
-  // CLOUD: RESTORE (Edge Function)
-  // =========================
-  async function restoreFromEdge(key) {
-    try {
-      const res = await fetch(EDGE_GET_EVENTS_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_key: key, limit: 200 })
-      });
+  async function restoreFromEdge(key){
+    const res = await fetch(EDGE_GET_EVENTS_URL, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ user_key:key, limit:200 })
+    });
+    const data = await res.json();
+    const rows = Array.isArray(data?.events) ? data.events : [];
 
-      const text = await res.text();
-      if (!res.ok) {
-        console.warn("Restore failed:", text);
-        toast("RESTORE", "Restauration impossible.");
-        return;
+    anomalies = rows.map(r => {
+      let date="-", time="-";
+      if (r.client_time) {
+        const p = String(r.client_time).split(" ");
+        date = p[0] || "-"; time = p[1] || "-";
       }
+      return {
+        text: r.text || "",
+        lang: r.lang || lang,
+        location: r.location || "-",
+        date, time,
+        iso: r.event_time || new Date().toISOString()
+      };
+    });
 
-      const data = JSON.parse(text);
-      const rows = Array.isArray(data?.events) ? data.events : [];
-
-      anomalies = rows.map(r => {
-        let date = "-", time = "-";
-        if (r.client_time && typeof r.client_time === "string") {
-          const parts = r.client_time.split(" ");
-          date = parts[0] || "-";
-          time = parts[1] || "-";
-        } else if (r.event_time) {
-          const d = new Date(r.event_time);
-          date = `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
-          time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-        }
-        return {
-          text: r.text || "",
-          lang: r.lang || lang,
-          location: r.location || "-",
-          date, time,
-          iso: r.event_time || new Date().toISOString()
-        };
-      });
-
-      store.set("anomalies", anomalies);
-      renderLog();
-      toast("RESTORE", "Liste restaurée.");
-    } catch (e) {
-      console.warn("Restore failed:", e);
-      toast("RESTORE", "Restauration impossible.");
-    }
+    store.set("anomalies", anomalies);
+    toast("RESTORE", "Liste restaurée.");
+    renderLog();
   }
 
-  // =========================
-  // ADD ANOMALY
-  // =========================
-  async function addAnomaly() {
-    const raw = ($.input?.value || "").trim();
+  async function addAnomaly(){
+    const raw = ($.input.value || "").trim();
     if (!raw) return;
 
-    const { date, time, iso } = nowStamp();
-    const entry = {
-      text: raw,
-      date,
-      time,
-      iso,
-      lang,
-      location: autoLocation()
-    };
+    const {date,time,iso} = nowStamp();
+    const entry = { text:raw, date, time, iso, lang, location:autoLocation() };
 
     anomalies = [entry, ...anomalies];
     store.set("anomalies", anomalies);
-    if ($.input) $.input.value = "";
+    $.input.value = "";
     renderLog();
-
-    toast("SAVED", entry.location ? `${entry.text} @ ${entry.location}` : entry.text);
-
-    await sendToServer(entry);
+    toast("SAVED", `${entry.text} @ ${entry.location}`);
+    try { await sendToServer(entry); } catch(e){ console.warn(e); }
   }
 
-  // =========================
-  // EVENTS
-  // =========================
-  if ($.enter) $.enter.addEventListener("click", addAnomaly);
-  if ($.input) $.input.addEventListener("keydown", (e) => { if (e.key === "Enter") addAnomaly(); });
-
-  if ($.langSelect) {
-    $.langSelect.addEventListener("change", () => {
-      lang = $.langSelect.value;
-      store.set("lang", lang);
-    });
+  function showBannerIfNeeded(){
+    if (consent.decided) return;
+    $.banner.style.display = "block";
+    $.shareToggle.checked = !!consent.share;
+    $.geoToggle.checked = !!consent.geo;
   }
 
-  if ($.copyKeyBtn) {
-    $.copyKeyBtn.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(userKey);
-        toast("ID", "Clé copiée.");
-      } catch {
-        toast("ID", "Copie impossible.");
-      }
-    });
-  }
+  $.enter.addEventListener("click", addAnomaly);
+  $.input.addEventListener("keydown", (e) => { if (e.key === "Enter") addAnomaly(); });
+  $.clear.addEventListener("click", () => { anomalies = []; store.set("anomalies", anomalies); renderLog(); });
 
-  if ($.newKeyBtn) {
-    $.newKeyBtn.addEventListener("click", () => {
-      userKey = genUserKey();
-      store.set("userKey", userKey);
-      refreshUserKeyUI();
-      toast("ID", "Nouvelle clé créée.");
-    });
-  }
+  $.langSelect.addEventListener("change", () => { lang = $.langSelect.value; store.set("lang", lang); });
 
-  if ($.restoreBtn) {
-    $.restoreBtn.addEventListener("click", async () => {
-      const k = ($.restoreKeyInput?.value || "").trim().toUpperCase();
-      if (!k.startsWith("ANOM-")) {
-        toast("RESTORE", "Clé invalide.");
-        return;
-      }
-      userKey = k;
-      store.set("userKey", userKey);
-      refreshUserKeyUI();
-      await restoreFromEdge(userKey);
-    });
-  }
+  $.copyKeyBtn.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(userKey); toast("ID", "Clé copiée."); }
+    catch { toast("ID", "Copie impossible."); }
+  });
 
-  if ($.bannerLater) {
-    $.bannerLater.addEventListener("click", () => {
-      consent = { share: false, geo: false, decided: true };
-      store.set("consent", consent);
-      if ($.banner) $.banner.style.display = "none";
-      gps = null;
-    });
-  }
+  $.newKeyBtn.addEventListener("click", () => {
+    userKey = genUserKey();
+    store.set("userKey", userKey);
+    refreshUI();
+    toast("ID", "Nouvelle clé créée.");
+  });
 
-  if ($.bannerAccept) {
-    $.bannerAccept.addEventListener("click", saveConsentFromUI);
-  }
+  $.restoreBtn.addEventListener("click", async () => {
+    const k = ($.restoreKeyInput.value || "").trim().toUpperCase();
+    if (!k.startsWith("ANOM-")) return toast("RESTORE", "Clé invalide.");
+    userKey = k;
+    store.set("userKey", userKey);
+    refreshUI();
+    await restoreFromEdge(userKey);
+  });
 
-  // =========================
-  // INIT
-  // =========================
+  $.bannerLater.addEventListener("click", () => {
+    consent = { share:false, geo:false, decided:true };
+    store.set("consent", consent);
+    $.banner.style.display = "none";
+    refreshUI();
+  });
+
+  $.bannerAccept.addEventListener("click", () => {
+    consent = { share: $.shareToggle.checked, geo: $.geoToggle.checked, decided:true };
+    store.set("consent", consent);
+    $.banner.style.display = "none";
+    requestGeoIfAllowed();
+    refreshUI();
+  });
+
   showBannerIfNeeded();
   requestGeoIfAllowed();
-  refreshUserKeyUI();
-  renderLog();
+  refreshUI();
 })();
 </script>
+</body>
+</html>
